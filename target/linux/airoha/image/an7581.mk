@@ -128,6 +128,41 @@ define Device/gemtek_w1700k-ubi
 endef
 TARGET_DEVICES += gemtek_w1700k-ubi
 
+define Device/gemtek_xr1710g-ubi
+  DEVICE_VENDOR := Gemtek
+  DEVICE_MODEL := XR1710G
+  DEVICE_VARIANT := UBI
+  DEVICE_DTS := an7581-xr1710g-ubi
+  DEVICE_COMPAT_VERSION := 2.0
+  DEVICE_COMPAT_MESSAGE := The XR1710G BMT/BBT boundary has changed. Install \
+       an XR1710G chainloader/U-Boot using the new layout first, then boot \
+       recovery/initramfs and fully recreate UBI. A normal sysupgrade that \
+       preserves configuration is unsafe.
+  DEVICE_PACKAGES := -airoha-en7581-npu-firmware \
+		    -kmod-input-gpio-keys-polled -kmod-leds-pwm \
+		    -kmod-pwm-airoha \
+		    airoha-en7581-mt7996-npu-firmware \
+			fitblk kmod-i2c-an7581 kmod-hwmon-nct7802 \
+		    kmod-mt7996-firmware kmod-phy-realtek rtl8261n-firmware \
+		    wpad-basic-mbedtls kmod-tcp-bbr \
+			default-settings-chn px5g-mbedtls luci-compat \
+			luci-app-airoha-npu luci-app-w1700k-fancontrol \
+			luci-app-mlo
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  UBOOTENV_IN_UBI := 1
+  KERNEL_IN_UBI := 1
+  KERNEL := kernel-bin | gzip
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 128k
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  IMAGES := sysupgrade.itb
+  IMAGE/sysupgrade.itb := append-kernel | fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | append-metadata
+  SOC := an7581
+endef
+TARGET_DEVICES += gemtek_xr1710g-ubi
+
 define Device/nokia_valyrian
   DEVICE_VENDOR := Nokia
   DEVICE_MODEL := Valyrian
